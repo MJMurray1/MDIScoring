@@ -1,0 +1,5 @@
+#Simple script that clears all files in the various output directories used, ready for a fresh analysis
+#Seperated from other scripts so as to reduce likelihood of unwanted clearing of required files
+
+FoldersToClear<-c(ExtractionOutputDirectory, ProbeInfoDirectory, StatsOutputDirectory, ProcessedStatsOutputDirectory)
+do.call(file.remove,list(list.files(FoldersToClear,full.names=TRUE)))

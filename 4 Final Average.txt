@@ -1,0 +1,29 @@
+#This function combines the scores from each data set to produce final, overall MDI and MaxDiff scores.
+#Requires 'plyr' package.
+#CellName is the generic name of the cell type you are computing MDIs for, and the name of the .csv file desired from the CellNameDirectory.
+#ProcessedStatsOutputDirectory is the location to where the outputs from the 'StatisticsProcessing' function were written
+#AveragedStatsOutputDirectory is the location to which the final summary data will be written
+
+library(plyr) #Load plyr package
+
+FinalAverage<- function(CellName,ProcessedStatsOutputDirectory,AveragedStatsOutputDirectory){
+
+ToAverageFiles<-list.files(ProcessedStatsOutputDirectory,full.names=TRUE) #Read all files from 'StatisticsProcessing' function
+
+AvDiffs<-numeric() #Create empty results vectors
+MaxDiffs<-numeric()
+
+for (file in ToAverageFiles){ #Read in each file to extract data
+  FileToAv<-read.delim(file, header=TRUE,row.names=1,sep=",",check.names=FALSE) #Read processed stats from 1 data set
+  AvDiffs<-rbind.fill(as.data.frame(AvDiffs),as.data.frame(FileToAv[1,])) #Compile Data Set Specific MDIs
+  MaxDiffs<-rbind.fill(as.data.frame(MaxDiffs),as.data.frame(FileToAv[2,])) #Compile Data Set Specific MaxDiffs
+  }
+
+AvDiffs[1]<-NULL #Remove columns of NAs
+MaxDiffs[1]<-NULL
+
+FinalScores<-rbind(colMeans(AvDiffs,na.rm=TRUE), colMeans(MaxDiffs,na.rm=TRUE))#Calculate average MDI and MaxDiff
+row.names(FinalScores)<-c("MDI","MaxDiff")
+
+write.csv(FinalScores,file=paste(AveragedStatsOutputDirectory,"\\",CellName," Summary.csv",sep="")) #Write final summary file
+}

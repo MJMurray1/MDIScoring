@@ -1,0 +1,63 @@
+#This function carries out the initial set of computations necessary to calculate MDI scores.
+#It calculates the geometric mean gene expression ore for each module applied to each cell type in each data set.
+#Data sets to be saved as .csv files, with 1st column as gene identifiers and 1st row as cell names.
+#Data sets should be saved in DataDirectory.
+#ExtractionOutputDirectory is the location to which the outputs from 'Extraction' function were written
+#CellNameDirectory contains .csv files that dictact what the cell type for which you are computing MDIs is called in each data set you are using
+#CellName is the generic name of the cell type you are computing MDIs for, and the name of the .csv file desired from the CellNameDirectory
+#StatsOutputDirectory dictates where the output files from this function will be written 
+
+
+
+ModuleStatistics<-function(DataDirectory,ExtractionOutputDirectory,CellNameDirectory,CellName,StatsOutputDirectory){
+
+CellNames<- read.csv(paste(CellNameDirectory,"//",CellName,".csv",sep=""),header=FALSE,row.names=1,stringsAsFactors=FALSE) #Read name of cell types of interest in each data set
+  
+data_list<-list.files(DataDirectory,full.names=TRUE) #List Data Files
+  AllDataNames<-unlist(strsplit(data_list,split=DataDirectory,fixed=TRUE)) #Begin finding unique dataset name
+    AllDataNamesCorrected<-AllDataNames[seq(2,length(AllDataNames),2)]
+      AllDataNamesCorrected<-unlist(strsplit(AllDataNamesCorrected,split=".cs",fixed=TRUE)) 
+        AllDataNamesCorrected<-AllDataNamesCorrected[seq(1,length(AllDataNamesCorrected),2)] 
+          AllDataNamesCorrected<-substring(AllDataNamesCorrected,2) #Trimmed data file names
+          
+outputs_list <- list.files(ExtractionOutputDirectory,full.names=TRUE) #list files from 'Extraction' function          
+
+for(DataSetName in AllDataNamesCorrected){ #Find all files for one data set
+  FileSelector<-grep(DataSetName,outputs_list) #Identify which files contain information from specific data set
+    SelectedFiles<-outputs_list[FileSelector] #Select those files
+      CurrentCellName<-CellNames[DataSetName,1] #Identify required cell name for specific data set
+             
+for(output in SelectedFiles){ #loop through each file for particular data set
+  outputs<-read.csv(output, header=TRUE,row.names=1, check.names=FALSE) #read file
+
+  if (nrow(outputs)!=0){ #Prevent attempts to calculate statistics from empty files - i.e. those where no components of the signature were found in the data set
+    
+    ColumnNames<-colnames(outputs) #Read Column Titles
+    
+    ReferenceColumn<-outputs[[CurrentCellName]] #Set Referencecolumn to column name of interest 
+    Geomeans<-numeric() #Create empty geomeans vector
+    
+    gm_mean = function(x, na.rm=TRUE){ #Geomean calculation from Paul McMurdie, Stackoverflow.com comment (http://stackoverflow.com/questions/2602583/geometric-mean-is-there-a-built-in)
+      exp(sum(log(x[x > 0]), na.rm=na.rm) / length(x))
+    }
+    
+for(i in ColumnNames){ #loop through each column
+      Geomean<-gm_mean(outputs[,i]) #Calculate geometric mean
+          Geomeans<-c(Geomeans,Geomean) #Collect Geometric mean results
+}
+
+Geomeans<-as.matrix(unlist(Geomeans))
+rownames(Geomeans)<-ColumnNames #Apply lables to stats
+colnames(Geomeans)<-"Geometric Means"
+
+StatsNameTrimmed<-unlist(strsplit(output,split=" Cleaned",fixed=TRUE))[1] #Tidy up file name
+StatsNameTrimmed<-unlist(strsplit(StatsNameTrimmed,split=ExtractionOutputDirectory,fixed=TRUE))[2]
+StatsNameTrimmed<-substring(StatsNameTrimmed,2) #Final name for file containing signature and data set name
+
+
+write.csv(Geomeans,file=paste(StatsOutputDirectory,"//",StatsNameTrimmed," Stats.csv",sep="")) #write results
+
+}
+}
+}
+}

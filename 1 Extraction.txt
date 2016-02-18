@@ -1,0 +1,71 @@
+#This function extracts gene expression information within a dataset for the elements  specified in your modules. It can have multiple data sets and multiple modules input simultaneously.
+#The result will be one .csv file per data set/module combination, containing only the components of that module found in that data set.
+#Modules are to be saved as .csv files, containing a single column of gene names (or other identifier, as long as it is consistant between modules and data sets).
+#Modules should be saved in SigDirectory.
+#Data sets to be saved as .csv files, with 1st column as gene identifiers and 1st row as cell names.
+#Data sets should be saved in DataDirectory.
+#ExtractionOutputDirectory specifies where the outputs from this function will go.
+#ProbeInfoDirectory will contain a series of files, one per module, detailing how many components of the module were able to be found in each data set.
+
+Extraction<-function(SigDirectory,DataDirectory,ExtractionOutputDirectory,ProbeInfoDirectory){
+
+signature_list <- list.files(SigDirectory,full.names=TRUE) #list signatures in directory
+
+for(signature in signature_list){ #loop through extraction procedure for each signature
+  
+Signature<-read.csv(signature, header=FALSE) #Import Signature as column of probes
+Signature<-Signature[,1]
+Signature<-tolower(Signature) #converts to lowercase, ensure matches with dataset
+
+data_list<-list.files(DataDirectory,full.names=TRUE) #list data sets in directory
+
+ProbesInSigCombined<-numeric() #create empty variables for probe information
+ProbesUsedCombined<-numeric()
+PercentUsedCombined<-numeric() 
+
+for(data in data_list){ #loop through each data set for the current signature
+
+TotalData<-read.csv(data,row.names=1,header=TRUE,check.names=FALSE) #Import dataset with one header containing cell names, with first column as probe names as in signature
+Dataforanalysis<-numeric() #Create empty results vector
+rownames(TotalData)<-tolower(rownames(TotalData)) #converts gene names from data set to lowercase to ensure they match those from the module
+
+for(i in Signature){ #Lookup each component of the signature in the data set and combine
+  Datarow<-TotalData[i,] #find row of interest
+    Dataforanalysis<-rbind(Dataforanalysis,Datarow) #Add to previously found rows
+}
+CleanedDataForAnalysis<-na.omit(Dataforanalysis) #Remove probes that were in signature but not in dataset used
+
+ProbesInSig<-length(Signature) #Number of probes in original signature
+ProbesUsed<-nrow(CleanedDataForAnalysis) #Number of probes from signature present in Data Set
+PercentUsed<-(ProbesUsed/ProbesInSig)*100 #Percentage of probes found
+ProbesInSigCombined<-cbind(ProbesInSigCombined,ProbesInSig) #Combine together all the values for the number of elements in the module (will be the same)
+ProbesUsedCombined<-cbind(ProbesUsedCombined,ProbesUsed) #Combine together all the values for the number of elements found in each data set (will differ)
+PercentUsedCombined<-cbind(PercentUsedCombined,PercentUsed) #Combine percentage of elements found
+ProbeInfo<-rbind(ProbesInSigCombined, ProbesUsedCombined,PercentUsedCombined) #Combine previous variables for easy output
+
+SigNameTrimmed<-unlist(strsplit(signature,split=SigDirectory,fixed=TRUE))[2] #Trim Signature and Data set names
+SigNameTrimmed<-unlist(strsplit(SigNameTrimmed,split=".cs",fixed=TRUE))[1]
+SigNameTrimmed<-substring(SigNameTrimmed,2)
+DataNameTrimmed<-unlist(strsplit(data,split=DataDirectory,fixed=TRUE))[2] 
+DataNameTrimmed<-unlist(strsplit(DataNameTrimmed,split=".cs",fixed=TRUE))[1]
+DataNameTrimmed<-substring(DataNameTrimmed,2)
+
+write.csv(CleanedDataForAnalysis,file=paste(ExtractionOutputDirectory,"//",SigNameTrimmed," ",DataNameTrimmed," Cleaned Data.csv",sep="")) #write data
+if (nrow(CleanedDataForAnalysis)==0){ #Output message if no components of signature are found in data set
+  
+  print(paste("None of the components of module",SigNameTrimmed,"were found in data set",DataNameTrimmed,"by the extraction function and therefore no statistics can be calculated")) 
+}
+}
+
+rownames(ProbeInfo)<-c("Probes in Original Signature","Probes from Signature in Data Set","Percentage of Probes used") #Labels for probe information file
+DataNamesForPI<-unlist(strsplit(data_list,split=DataDirectory,fixed=TRUE)) #Select and tidy up Data set names for the probe info file
+DataNamesForPI<-DataNamesForPI[seq(2,length(DataNamesForPI),2)] 
+DataNamesForPI<-unlist(strsplit(DataNamesForPI,split=".cs"))
+DataNamesForPI<-DataNamesForPI[seq(1,length(DataNamesForPI),2)]
+DataNamesForPI<-substring(DataNamesForPI,2)
+colnames(ProbeInfo)<-DataNamesForPI
+
+write.csv(ProbeInfo,file=paste(ProbeInfoDirectory,"//",SigNameTrimmed," Probe Info.csv",sep="")) #write ProbeInfo
+
+}
+}

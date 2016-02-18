@@ -1,0 +1,35 @@
+#Where your data sets are
+DataDirectory<-"X\\1. Datasets"
+
+#Where your modules are
+SigDirectory<-"X\\2. Modules"
+
+#Where the files containing the information about what your cell type of interest is called in each data set are
+CellNameDirectory<-"X\\3. Cell Names"
+
+#Where you want the files containing the extracted components of the data sets present in your modules to be written
+ExtractionOutputDirectory<-"X\\4. Module Extraction Outputs"
+
+#Where you want the probe information (How many found etc) to go
+ProbeInfoDirectory<-"X\\5. Probe Information"
+
+#Where you want the first round of calculations to be written
+StatsOutputDirectory<-"X\\6. Geomeans"
+
+#Where you want the processed results to be written
+ProcessedStatsOutputDirectory<-"X\\7. Processed Geomeans"
+
+#Where you want the final results to be written
+AveragedStatsOutputDirectory<-"X\\8. Results"
+
+#What you've called the file containing information on cell names in data sets (the one in CellNameDirectory), must be inside ""
+CellName<-"NK Cell"
+
+Extraction(SigDirectory,DataDirectory,ExtractionOutputDirectory,ProbeInfoDirectory)
+
+ModuleStatistics(DataDirectory,ExtractionOutputDirectory,CellNameDirectory,CellName,StatsOutputDirectory)
+
+StatisticsProcessing(DataDirectory,StatsOutputDirectory,CellNameDirectory,CellName,ProcessedStatsOutputDirectory)
+
+FinalAverage(CellName,ProcessedStatsOutputDirectory,AveragedStatsOutputDirectory)
+

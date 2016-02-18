@@ -1,0 +1,81 @@
+#This function computes the Data Set Specific MDI and MaxDiff.
+#MDI is defined as the geometric mean of the cell type of interest minus the average geometric mean of all other cell types in the data set, divided by the geometric mean of the cell type of interest.
+#MaxDiff is defined as the geometric mean of the cell type of interest minus the geometric mean of the other cell type with the highest geometric mean, divided by the geometric mean of the cell type of interest.
+#Data sets to be saved as .csv files, with first column as gene identifiers and 1st row as cell names.
+#Data sets should be saved in DataDirectory.
+#StatsOutputDirectory is the location to where the outputs from the 'ModuleStatistics' function were written.
+#CellNameDirectory contains .csv files that dictact what the cell type for which you are computing MDIs is called in each data set you are using.
+#CellName is the generic name of the cell type you are computing MDIs for, and the name of the .csv file desired from the CellNameDirectory.
+#ProccessedStatsOutputDirectory is the location to which the Data Set Specific MDI and MaxDiff information should be written.
+
+
+StatisticsProcessing<-function(DataDirectory,StatsOutputDirectory,CellNameDirectory,CellName,ProcessedStatsOutputDirectory){
+
+file_list <- list.files(StatsOutputDirectory,full.names=TRUE) #List files output from ModuleStatistics
+
+CellNames<- read.csv(paste(CellNameDirectory,"//",CellName,".csv",sep=""),header=FALSE,row.names=1,stringsAsFactors=FALSE) #Read name of cell types of interest in each data set
+
+data_list<-list.files(DataDirectory,full.names=TRUE) #List Data Files
+AllDataNames<-unlist(strsplit(data_list,split=DataDirectory,fixed=TRUE)) #Begin finding unique dataset name
+AllDataNamesCorrected<-AllDataNames[seq(2,length(AllDataNames),2)]
+AllDataNamesCorrected<-unlist(strsplit(AllDataNamesCorrected,split=".cs",fixed=TRUE)) 
+AllDataNamesCorrected<-AllDataNamesCorrected[seq(1,length(AllDataNamesCorrected),2)] 
+AllDataNamesCorrected<-substring(AllDataNamesCorrected,2) #Trimmed data file names
+
+for(DataSetName in AllDataNamesCorrected){ #Find all files for one data set
+  FileSelector<-grep(DataSetName,file_list) #Identify which files contain information from specific data set
+    SelectedFiles<-file_list[FileSelector] #Select those files
+      CurrentCellName<-CellNames[DataSetName,1] #Identify required cell name for specific data set
+  
+GeoDataset<-numeric() #Create empty vector for geometric mean data to go into
+
+for (file in SelectedFiles){ #Read in each file, extract geometric mean data
+  
+  temp_dataset<-read.csv(file, header=TRUE,row.names=1)
+    geomeanfromfile<-temp_dataset[,1]
+      GeoDataset<-cbind(GeoDataset, geomeanfromfile)
+  
+}
+
+GeoDataset<-as.matrix(GeoDataset)
+colnames(GeoDataset)<-SelectedFiles #Apply row and column names to seperated data sets
+rownames<-row.names(temp_dataset)
+row.names(GeoDataset)<-rownames
+
+ReferenceRow<-which(row.names(temp_dataset)==CurrentCellName) #Find reference row i.e. that which contains the cell type of interest
+GeoDataForProcessing<-GeoDataset[-ReferenceRow,] #Remove reference row
+
+TotalNormAvDifference<-numeric() #Create empty results vector for MDI
+
+for(column in SelectedFiles){ #Calculate normalised difference between reference Geomean and average of other geomeans (MDI)
+  ToAv<-GeoDataForProcessing[,column]
+    AvGeomeans<-mean(ToAv)
+      AvGeomeansDifference<-GeoDataset[ReferenceRow,column]-AvGeomeans
+        NormAvGeomeansDifference<-AvGeomeansDifference/GeoDataset[ReferenceRow,column]
+          TotalNormAvDifference<-cbind(TotalNormAvDifference,NormAvGeomeansDifference)
+}
+
+TotalNormMaxDifference<-numeric() #Create empty results vector for MaxDiff
+
+for(column in SelectedFiles){ #Calculate normalised difference between reference Geomean and highest other geomean (MaxDiff)
+  PickMax<-GeoDataForProcessing[,column]
+   MaxOtherVal<-max(PickMax)
+    MaxDifference<-GeoDataset[ReferenceRow,column]-MaxOtherVal
+      NormMaxDifference<-MaxDifference/GeoDataset[ReferenceRow,column]
+        TotalNormMaxDifference<-cbind(TotalNormMaxDifference,NormMaxDifference)
+}
+
+SigNames<-unlist(strsplit(SelectedFiles,split=StatsOutputDirectory,fixed=TRUE)) #Find Names of signatures
+SigNamesCorrected<-SigNames[seq(2,length(SigNames),2)] #Begin correcting Signature names
+SigNamesCorrected<-unlist(strsplit(SigNamesCorrected,split=DataSetName)) 
+SigNamesCorrected<-SigNamesCorrected[seq(1,length(SigNamesCorrected),2)]#Remove unwanted bits from SigNames
+SigNamesCorrected<-substr(SigNamesCorrected, 1, nchar(SigNamesCorrected)-1) #Remove unwanted spaces
+SigNamesCorrected<-substring(SigNamesCorrected,2) #Final trimmed signature names
+
+ComputedStats<-rbind(TotalNormAvDifference,TotalNormMaxDifference) #Compile results
+rownames(ComputedStats)<-c("Data Set Specific MDI","Data Set SpecificDiff") #Apply Score Names 
+
+colnames(ComputedStats)<-SigNamesCorrected #Apply Signature names
+write.csv(ComputedStats,file=paste(ProcessedStatsOutputDirectory,"\\",DataSetName," Scores.csv",sep="")) #Write Results
+}
+}
