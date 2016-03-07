@@ -1,0 +1,14 @@
+#Exact Name of the dataset you wish to calculate AUCs using
+Dataset<-"22886"
+
+#Exact name of the cell type of modules are designed to detect in Dataset set above
+CellNameAUC<-"B cells from PBMC"
+
+#The exact title of the column that contains the geometric means in your input files ("Geometric Means" if using MDI calculation functions)
+HeaderName<-"Geometric Means"
+
+#Directory containing the files to use to compute AUC (i.e. output from ModuleStatistics function if using MDI calculation funcitons)
+AUCDirectory<-"X\\AUCdirectory"
+
+#Execute function
+ModuleAUC(AUCDirectory,Dataset,CellNameAUC,HeaderName)
