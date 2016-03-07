@@ -1,7 +1,7 @@
 # MDIScoring
 .txt files containing R code required to run MDI Scoring functions and other related functions.
 
-These files are in simple .txt form, in order to use them in R their contents will need to be copied and pasted into empty R Scripts.
+These files are in simple .txt form, in order to use them in R their contents will need to be copied and pasted into empty R Scripts. A quick guide to MDI calculation is also provided.
 
 In order to calculate MDI Scores, you will need the following files:
 1 Extraction,
