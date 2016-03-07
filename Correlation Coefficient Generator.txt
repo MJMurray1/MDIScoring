@@ -1,0 +1,26 @@
+#### Correlation coefficient between one gene and all other genes in a dataset.
+# input file is .csv file with 1st column as gene identifiers and 1st row as cell names.
+# output file is a .csv file containing two columns, first column with gene names and second column with unranked correlation coefficients.
+#dir is the directory containing your dataset e.g. X:\\Directory
+#InputName is the title of the dataset e.g. "TESTDATA"
+#probename is the name of the probe/gene that you wish to calculate correlation coefficients using
+
+CorrelationCoefficient<-function(dir,InputName,probename){
+
+#read in data
+file_input<-paste(dir,"\\",InputName,sep="")
+data<-read.csv(file = file_input, row.names=1, quote="",  header=TRUE, fill = TRUE,stringsAsFactors=FALSE)
+gene1<-data[probename,] #Find probename row
+
+#calculate correlation
+datacor<-cor(t(data),t(gene1))
+
+#tidy data for output
+datacord<-as.data.frame(cbind(rownames(data),datacor))
+datacord<-as.data.frame(datacor)
+
+DataNameTrimmed<-unlist(strsplit(InputName,split=".cs",fixed=TRUE))[1] #Trim dataset name
+output<-paste(dir,"\\",DataNameTrimmed," ",probename,".csv",sep="") #Create file name
+write.csv(datacord,file=output) #Write Results
+
+}

@@ -1,0 +1,11 @@
+#Directory containing dataset to compute correlation coefficients from, contained within ""
+dir<-"X:\\Directory"
+
+#Define data file name TEST, contained within ""
+InputName<-"TEST.csv"
+
+#Define probe name or gene to test, contained within ""
+probename<-"117_at"
+
+#Execute function
+CorrelationCoefficient(dir,InputName,probename)
