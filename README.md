@@ -4,12 +4,12 @@
 These files are in simple .txt form, in order to use them in R their contents will need to be copied and pasted into empty R Scripts.
 
 In order to calculate MDI Scores, you will need the following files:
-#1 Extraction
-#2 Modules Statistics
-#3 Statistics Processing
-#4 Final Average
-#5 Folder Cleanup
-#Command List - MDI Generation
+\1 Extraction
+\2 Modules Statistics
+\3 Statistics Processing
+\4 Final Average
+\5 Folder Cleanup
+\Command List - MDI Generation
 
 To calculate Jaccard indexes, you will need the following files:
 Jaccard
