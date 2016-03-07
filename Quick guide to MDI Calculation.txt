@@ -1,6 +1,8 @@
 Quick guide to MDI calculation using scripts provided
+
 1: Software and folder setup
 All scripts to be used for analysis are written in R, a language and environment for statistical computing and graphics. R Studio is an open source integrated development environment for R which is more user friendly and highly recommended. In addition to the scripts provided, you will require the ‘plyr’ package (https://cran.r-project.org/web/packages/plyr/index.html), which can be installed either by running the command install.packages(“plyr”) or, in R Studio, clicking on ‘packages’ in the bottom right section, selecting ‘install’ and typing plyr into the text field and pressing install. All this software is free.
+
 These scripts separate the various components and stages of the analysis process using folders. You will need (Replace X with the full pathway ie.g. C:\\Users\\NAME\\Documents\\MDI Scoring):
 •	A folder to contain your datasets to be processed (e.g. X\\1. Datasets)
 •	A folder to contain your modules to be processed (e.g. X\\2. Modules)
@@ -11,16 +13,23 @@ These scripts separate the various components and stages of the analysis process
 •	A folder to contain the outputs from the second set of calculations (e.g. X\\7. Processed Geomeans)
 •	A folder to contain the final data summary (e.g. X\\8. Results)
 The scripts should account for whatever folder names you choose, but it is helpful to number the folders as demonstrated. Throughout the rest of the guide these folders will be referred to by the example numbers used above.
+
 2: Module, Dataset and Cell Name structure
 Modules must be stored as .csv files and should be a single column, with each element of the module stored on a separate row when opened in Excel. The name of the file should be just the name of the module. Elements can be in either upper or lower case, but should be unique (i.e. there should not be an element called lck and another called LCK). Modules can use any identifier desired (Gene name, affymetrix probe name etc.) but this must be consistent with every dataset to be used.
+
 Datasets must also be stored as .csv files and named simply as the name of the dataset as you wish to refer to it throughout your analysis. The first column should consist of gene/probe names (the same identifier as used in your modules) and the first row should consist of cell type names.
+
 Cell name files must also be stored as .csv files and should consist of two columns. The first should be the name of each dataset to be analysed, and next to each one should be the exact name of the cell type you wish to calculate MDIs for in that dataset. The file name should be something short and descriptive, as you will need to set it in the command list later and will be used to title the final results file.
+
 3: Scripts and functions
+
 There are four key functions required for calculating MDI:
 1.	Extraction
 2.	Module Statistics
 3.	Statistics Processing
 4.	Final Average
 Each is contained within its own script, written in R. To calculate MDI scores, they must be executed in this order. Each script needs to be opened and run (if using R Studio, simply open the file, then press “source” button. A function should be added to your environment). Then you may open the Command List provided and set the various directories to match the ones you created earlier. You must also set the CellName variable to match the name of your file that specifies what your cell type of interest is called in each of your datasets (in the examples above it is NK Cell, so the command list will read CellName<-“NK Cell”). 
+
 Once these are all set, you simply need to run the Command List. Running it line by line to begin with is recommended but once it is working smoothly again you may simply press ‘source’ if using R Studio. The Extraction function can take some time to run (a few minutes, depending on how many modules/Datasets are being analysed), but if you open the X\\4. Module Extraction Outputs folder you should see the files being written. Your MDI and MaxDiff results will then be available in the X\\8. Final Results folder.
+
 Also included is a simple script called ‘5 Folder Cleanup’. Running both lines of this script simply deletes anything in your X\\4. Module Extraction Outputs, X\\5. Probe Information, X\\6. Geomeans and X\\7. Processed Geomeans folders, ready for a fresh analysis. This is important as having files already present in these folders prior to starting an analysis will cause it to either fail or generate incorrect results.
